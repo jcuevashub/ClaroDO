@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.ListItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,6 @@ import com.example.contactsapp.domain.model.Contact
 import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
 import com.example.contactsapp.common.StringConstants
-import com.example.contactsapp.common.StringResources
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,9 +42,9 @@ fun ContactListScreen(
     viewModel: ContactListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+
     LaunchedEffect(uiState.error) { }
-    
+
     var snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -79,39 +79,124 @@ fun ContactListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            SearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = viewModel::updateSearchQuery,
-                onSearch = { },
-                active = uiState.isSearchActive,
-                onActiveChange = { if (!it) viewModel.clearSearch() },
-                placeholder = { Text(stringResource(R.string.search_contacts)) },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search))
+            var searchActive by remember { mutableStateOf(false) }
+
+            val onActiveChange: (Boolean) -> Unit = { isActive ->
+                searchActive = isActive
+                if (!isActive) {
+                    viewModel.clearSearch()
+                }
+            }
+            DockedSearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = uiState.searchQuery,
+                        onQueryChange = viewModel::updateSearchQuery,
+                        onSearch = { /* Handle search submission if needed */ },
+                        expanded = searchActive,
+                        onExpandedChange = onActiveChange,
+                        placeholder = { Text(stringResource(R.string.search_contacts)) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = stringResource(R.string.search)
+                            )
+                        },
+                        trailingIcon = {
+                            if (uiState.searchQuery.isNotEmpty()) {
+                                IconButton(onClick = {
+                                    viewModel.clearSearch()
+                                    searchActive = false
+                                }) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear_search_desc)
+                                    )
+                                }
+                            }
+                        },
+
+                    )
                 },
-                trailingIcon = {
-                    if (uiState.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = viewModel::clearSearch) {
-                            Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.clear_search_desc))
-                        }
-                    }
-                },
+                expanded = searchActive,
+                onExpandedChange = onActiveChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-            }
-            
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    .padding(16.dp),
+                content = {
+                    // Search suggestions or recent searches could go here
+                    if (uiState.searchQuery.isNotEmpty() && uiState.displayedContacts.isNotEmpty()) {
+                        LazyColumn {
+                            items(uiState.displayedContacts.take(3)) { contact ->
+                                ListItem(
+                                    headlineContent = {
+                                        Text(contact.name + StringConstants.SPACE + contact.lastName)
+                                    },
+                                    supportingContent = {
+                                        Text(contact.phone)
+                                    },
+                                    leadingContent = {
+                                        Surface(
+                                            modifier = Modifier.size(40.dp),
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.secondaryContainer
+                                        ) {
+                                            Box(
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                val initials = (listOfNotNull(contact.name, contact.lastName)
+                                                    .filter { it.isNotBlank() }
+                                                    .map { it.trim().firstOrNull()?.uppercase() ?: StringConstants.EMPTY_STRING }
+                                                    .take(2)
+                                                    .joinToString(StringConstants.EMPTY_STRING)
+                                                    ).ifBlank { stringResource(R.string.contact_initial_placeholder) }
+                                                Text(
+                                                    text = initials,
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                )
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            // Close search and scroll to contact
+                                            searchActive = false
+                                            viewModel.clearSearch()
+                                        }
+                                )
+                            }
+                        }
+                    } else if (uiState.searchQuery.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.empty_search),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-                uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
+            )
+
+            // Only show main content when search is not active
+            if (!searchActive) {
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -154,29 +239,69 @@ fun ContactListScreen(
                         }
                     }
                 }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(uiState.displayedContacts) { contact ->
-                            ContactItem(
-                                contact = contact,
-                                isSelected = uiState.selectedContacts.contains(contact),
-                                isSelectionMode = uiState.isSelectionMode,
-                                onSelectionToggle = { viewModel.toggleContactSelection(contact) }
-                            )
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.displayedContacts) { contact ->
+                                ContactItem(
+                                    contact = contact,
+                                    isSelected = uiState.selectedContacts.contains(contact),
+                                    isSelectionMode = uiState.isSelectionMode,
+                                    onSelectionToggle = { viewModel.toggleContactSelection(contact) }
+                                )
+                            }
                         }
                     }
+                }
+            } else {
+                // Show search suggestions when search is active
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = if (uiState.searchQuery.isEmpty()) {
+                            stringResource(R.string.search_contacts)
+                        } else {
+                            stringResource(R.string.searching, uiState.searchQuery)
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (uiState.searchQuery.isEmpty()) {
+                            stringResource(R.string.search_hint)
+                        } else {
+                            stringResource(R.string.search_results_hint)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
     }
-    
+
     uiState.error?.let { error ->
         val msg = when (error) {
-            StringResources.ERR_UNKNOWN -> stringResource(R.string.err_unknown)
+            StringConstants.ERR_UNKNOWN -> stringResource(R.string.err_unknown)
             else -> error
         }
         LaunchedEffect(error) {
@@ -257,9 +382,9 @@ private fun ContactItem(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -298,7 +423,7 @@ private fun ContactItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             if (isSelectionMode) {
                 if (isSelected) {
                     Icon(

@@ -79,4 +79,9 @@
     <string name="language_english">Inglés</string>
     <string name="language_spanish">Español</string>
     <string name="select_language">Seleccionar idioma</string>
+
+    <!-- Search suggestions -->
+    <string name="search_hint">Escribe para buscar contactos por nombre, apellido o teléfono</string>
+    <string name="search_results_hint">Los resultados aparecerán arriba</string>
+    <string name="searching">Buscando "%1$s"...</string>
 </resources>

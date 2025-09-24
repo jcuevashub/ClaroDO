@@ -19,7 +19,6 @@ class UpdateContactUseCase @Inject constructor(
                     if (repository is ContactRepositoryEnhanced) {
                         repository.updateContact(contact)
                     } else {
-                        // Fallback for basic repository - treat as insert
                         repository.insertContact(contact)
                         Result.success(Unit)
                     }

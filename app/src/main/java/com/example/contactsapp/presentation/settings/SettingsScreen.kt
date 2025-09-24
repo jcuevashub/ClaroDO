@@ -30,7 +30,6 @@ fun SettingsScreen(
     val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Handle activity recreation when language changes
     LaunchedEffect(uiState.shouldRecreateActivity) {
         if (uiState.shouldRecreateActivity) {
             onLanguageChanged()
@@ -38,7 +37,6 @@ fun SettingsScreen(
         }
     }
 
-    // Show sync success message
     LaunchedEffect(uiState.showSyncSuccess) {
         if (uiState.showSyncSuccess) {
             snackbarHostState.showSnackbar(
@@ -48,7 +46,6 @@ fun SettingsScreen(
         }
     }
 
-    // Show sync error message
     LaunchedEffect(uiState.syncError) {
         uiState.syncError?.let { error ->
             snackbarHostState.showSnackbar(

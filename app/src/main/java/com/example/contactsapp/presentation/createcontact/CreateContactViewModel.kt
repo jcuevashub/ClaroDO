@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.usecase.CreateContactUseCase
 import com.example.contactsapp.common.StringConstants
-import com.example.contactsapp.common.StringResources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -14,8 +13,7 @@ import kotlin.random.Random
 
 @HiltViewModel
 class CreateContactViewModel @Inject constructor(
-    private val createContactUseCase: CreateContactUseCase,
-    private val stringResources: StringResources
+    private val createContactUseCase: CreateContactUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateContactUiState())
@@ -58,7 +56,7 @@ class CreateContactViewModel @Inject constructor(
     fun saveContact() {
         val state = _uiState.value
         if (!state.isFormValid) {
-            _uiState.update { it.copy(error = StringResources.ERR_FIX_FIELDS) }
+            _uiState.update { it.copy(error = StringConstants.ERR_FIX_FIELDS) }
             return
         }
 
@@ -85,10 +83,10 @@ class CreateContactViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     val msg = when (error.message) {
-                        StringConstants.ERR_NAME -> StringResources.ERR_NAME
-                        StringConstants.ERR_LASTNAME -> StringResources.ERR_LASTNAME
-                        StringConstants.ERR_PHONE -> StringResources.ERR_PHONE
-                        else -> StringResources.ERR_UNKNOWN
+                        StringConstants.ERR_NAME -> StringConstants.ERR_NAME
+                        StringConstants.ERR_LASTNAME -> StringConstants.ERR_LASTNAME
+                        StringConstants.ERR_PHONE -> StringConstants.ERR_PHONE
+                        else -> StringConstants.ERR_UNKNOWN
                     }
                     _uiState.update { it.copy(isLoading = false, error = msg) }
                 }

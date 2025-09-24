@@ -12,6 +12,5 @@ data class ContactListUiState(
     val error: String? = null,
     val isSelectionMode: Boolean = false
 ) {
-    // Since we're doing database-level search, displayedContacts is just contacts
     val displayedContacts: List<Contact> get() = contacts
 }

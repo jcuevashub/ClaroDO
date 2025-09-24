@@ -7,7 +7,6 @@ import com.example.contactsapp.domain.usecase.DeleteContactsUseCase
 import com.example.contactsapp.domain.usecase.GetContactsUseCase
 import com.example.contactsapp.domain.usecase.SearchContactsUseCase
 import com.example.contactsapp.common.StringConstants
-import com.example.contactsapp.common.StringResources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -17,8 +16,7 @@ import javax.inject.Inject
 class ContactListViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val searchContactsUseCase: SearchContactsUseCase,
-    private val deleteContactsUseCase: DeleteContactsUseCase,
-    private val stringResources: StringResources
+    private val deleteContactsUseCase: DeleteContactsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContactListUiState())
@@ -45,7 +43,7 @@ class ContactListViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = StringResources.ERR_UNKNOWN) }
+                _uiState.update { it.copy(isLoading = false, error = StringConstants.ERR_UNKNOWN) }
             }
         }
     }
@@ -58,7 +56,6 @@ class ContactListViewModel @Inject constructor(
             )
         }
         
-        // Perform search when query changes
         performSearch(query)
     }
     
@@ -67,18 +64,16 @@ class ContactListViewModel @Inject constructor(
         contactsJob = viewModelScope.launch {
             try {
                 if (query.isBlank()) {
-                    // Load all contacts when search is cleared
                     getContactsUseCase().collect { contacts ->
                         _uiState.update { it.copy(contacts = contacts) }
                     }
                 } else {
-                    // Use search use case for database-level filtering
                     searchContactsUseCase(query).collect { contacts ->
                         _uiState.update { it.copy(contacts = contacts) }
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = StringResources.ERR_UNKNOWN) }
+                _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
             }
         }
     }
@@ -90,8 +85,14 @@ class ContactListViewModel @Inject constructor(
                 isSearchActive = false
             )
         }
-        // Reset to show all contacts
         performSearch(StringConstants.EMPTY_STRING)
+    }
+
+    fun setSearchActive(active: Boolean) {
+        _uiState.update { it.copy(isSearchActive = active) }
+        if (!active && _uiState.value.searchQuery.isBlank()) {
+            performSearch(StringConstants.EMPTY_STRING)
+        }
     }
 
     fun toggleContactSelection(contact: Contact) {
@@ -130,7 +131,7 @@ class ContactListViewModel @Inject constructor(
                         clearSelection()
                     }
                     .onFailure { _ ->
-                        _uiState.update { it.copy(error = StringResources.ERR_UNKNOWN, isLoading = false) }
+                        _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN, isLoading = false) }
                     }
             }
         }
