@@ -1,6 +1,6 @@
 # ContactsApp - Aplicación de Contactos Moderna
 
-!(https://github.com/jcuevashub/ClaroDO/blob/main/Screenshot_20250924_145741.png)
+![Screnshot](https://github.com/jcuevashub/ClaroDO/raw/main/Screenshot_20250924_145741.png)
 
 Una aplicación Android nativa desarrollada en Kotlin con Jetpack Compose que permite gestionar contactos con una interfaz moderna y funcionalidades avanzadas.
 
