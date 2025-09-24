@@ -92,7 +92,7 @@ fun ContactListScreen(
                     SearchBarDefaults.InputField(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::updateSearchQuery,
-                        onSearch = { /* Handle search submission if needed */ },
+                        onSearch = {  },
                         expanded = searchActive,
                         onExpandedChange = onActiveChange,
                         placeholder = { Text(stringResource(R.string.search_contacts)) },
@@ -124,7 +124,7 @@ fun ContactListScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 content = {
-                    // Search suggestions or recent searches could go here
+
                     if (uiState.searchQuery.isNotEmpty() && uiState.displayedContacts.isNotEmpty()) {
                         LazyColumn {
                             items(uiState.displayedContacts.take(3)) { contact ->
@@ -161,7 +161,7 @@ fun ContactListScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            // Close search and scroll to contact
+
                                             searchActive = false
                                             viewModel.clearSearch()
                                         }
@@ -185,7 +185,6 @@ fun ContactListScreen(
                 }
             )
 
-            // Only show main content when search is not active
             if (!searchActive) {
                 when {
                     uiState.isLoading -> {
@@ -257,7 +256,7 @@ fun ContactListScreen(
                     }
                 }
             } else {
-                // Show search suggestions when search is active
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

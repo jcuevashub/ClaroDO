@@ -70,12 +70,11 @@ class CreateContactViewModelTest {
 
     @Test
     fun `phone formatting RD and normalization`() {
-        // type 10 digits local, should auto prefix 1 and format
+
         viewModel.updatePhone("8095551234")
         assertEquals("+1 809-555-1234", viewModel.uiState.value.phone)
         assertEquals(null, viewModel.uiState.value.phoneError)
 
-        // invalid area
         viewModel.updatePhone("0005551234")
         assertEquals(true, viewModel.uiState.value.phoneError?.contains("Código de área") == true)
     }
@@ -104,4 +103,3 @@ class CreateContactViewModelTest {
         assertEquals(null, s.error)
     }
 }
-

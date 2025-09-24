@@ -38,8 +38,7 @@ class ContactRepositoryEnhanced @Inject constructor(
                 .collect { localContacts ->
                     emit(localContacts.map { it.toDomain() })
                 }
-            //TODO: For remote search
-            //searchContactsFromRemote(query)
+
         }
     }
 
@@ -50,7 +49,7 @@ class ContactRepositoryEnhanced @Inject constructor(
             }
             is NetworkResult.Error, is NetworkResult.Exception -> {
                 contactDao.insertContact(contact.toEntity())
-                // TODO: Add to sync queue for later retry
+
             }
         }
     }
@@ -62,7 +61,7 @@ class ContactRepositoryEnhanced @Inject constructor(
             }
             is NetworkResult.Error, is NetworkResult.Exception -> {
                 contactDao.deleteContact(contact.toEntity())
-                // TODO: Add to sync queue for later retry
+
             }
         }
     }
@@ -74,7 +73,7 @@ class ContactRepositoryEnhanced @Inject constructor(
             }
             is NetworkResult.Error, is NetworkResult.Exception -> {
                 contactDao.deleteContacts(contacts.map { it.toEntity() })
-                // TODO: Add to sync queue for later retry
+
             }
         }
     }
@@ -115,7 +114,7 @@ class ContactRepositoryEnhanced @Inject constructor(
                 }
             }
             is NetworkResult.Error, is NetworkResult.Exception -> {
-                // TODO: Log error or notify user about sync issues
+
             }
         }
     }
@@ -128,7 +127,7 @@ class ContactRepositoryEnhanced @Inject constructor(
                 }
             }
             is NetworkResult.Error, is NetworkResult.Exception -> {
-                // TODO: Handle search sync errors
+
             }
         }
     }

@@ -26,7 +26,7 @@ class CreateContactUseCaseTest {
 
     @Test
     fun `invoke with valid contact should return success`() = runTest {
-        // Given
+
         val contact = Contact(
             name = "John",
             lastName = "Doe",
@@ -34,17 +34,15 @@ class CreateContactUseCaseTest {
             imageUrl = "https://example.com/image.jpg"
         )
 
-        // When
         val result = useCase(contact)
 
-        // Then
         assertTrue(result.isSuccess)
         verify(repository).insertContact(contact)
     }
 
     @Test
     fun `invoke with blank name should return failure`() = runTest {
-        // Given
+
         val contact = Contact(
             name = "",
             lastName = "Doe",
@@ -52,10 +50,8 @@ class CreateContactUseCaseTest {
             imageUrl = "https://example.com/image.jpg"
         )
 
-        // When
         val result = useCase(contact)
 
-        // Then
         assertTrue(result.isFailure)
         assertEquals("El nombre no puede estar vacío", result.exceptionOrNull()?.message)
         verifyNoInteractions(repository)
@@ -63,7 +59,7 @@ class CreateContactUseCaseTest {
 
     @Test
     fun `invoke with blank lastName should return failure`() = runTest {
-        // Given
+
         val contact = Contact(
             name = "John",
             lastName = "",
@@ -71,10 +67,8 @@ class CreateContactUseCaseTest {
             imageUrl = "https://example.com/image.jpg"
         )
 
-        // When
         val result = useCase(contact)
 
-        // Then
         assertTrue(result.isFailure)
         assertEquals("El apellido no puede estar vacío", result.exceptionOrNull()?.message)
         verifyNoInteractions(repository)
@@ -82,7 +76,7 @@ class CreateContactUseCaseTest {
 
     @Test
     fun `invoke with blank phone should return failure`() = runTest {
-        // Given
+
         val contact = Contact(
             name = "John",
             lastName = "Doe",
@@ -90,10 +84,8 @@ class CreateContactUseCaseTest {
             imageUrl = "https://example.com/image.jpg"
         )
 
-        // When
         val result = useCase(contact)
 
-        // Then
         assertTrue(result.isFailure)
         assertEquals("El teléfono no puede estar vacío", result.exceptionOrNull()?.message)
         verifyNoInteractions(repository)
@@ -101,7 +93,7 @@ class CreateContactUseCaseTest {
 
     @Test
     fun `invoke when repository throws exception should return failure`() = runTest {
-        // Given
+
         val contact = Contact(
             name = "John",
             lastName = "Doe",
@@ -111,10 +103,8 @@ class CreateContactUseCaseTest {
         val exception = RuntimeException("Database error")
         `when`(repository.insertContact(contact)).thenThrow(exception)
 
-        // When
         val result = useCase(contact)
 
-        // Then
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
     }

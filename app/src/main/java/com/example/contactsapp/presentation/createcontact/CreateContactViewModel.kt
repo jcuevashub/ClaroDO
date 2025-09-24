@@ -31,16 +31,16 @@ class CreateContactViewModel @Inject constructor(
 
     fun updatePhone(phone: String) {
         val digitsOnly = phone.filter { it.isDigit() }.take(ValidationConstants.PHONE_DIGITS_LENGTH)
-        
+
         val err = when {
             digitsOnly.isEmpty() -> null
             digitsOnly.length < 7 -> null
             digitsOnly.length == ValidationConstants.PHONE_DIGITS_LENGTH -> {
                 val area = digitsOnly.substring(0, 3)
-                if (area in ValidationConstants.VALID_AREA_CODES) null 
+                if (area in ValidationConstants.VALID_AREA_CODES) null
                 else ValidationConstants.ERR_AREA_CODE_INVALID
             }
-            digitsOnly.length in 7..9 -> ValidationConstants.ERR_PHONE_INVALID // Incomplete
+            digitsOnly.length in 7..9 -> ValidationConstants.ERR_PHONE_INVALID
             else -> null
         }
 
@@ -70,15 +70,15 @@ class CreateContactViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            
+
             createContactUseCase(contact)
                 .onSuccess {
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
-                            isLoading = false, 
+                            isLoading = false,
                             isSaved = true,
                             error = null
-                        ) 
+                        )
                     }
                 }
                 .onFailure { error ->

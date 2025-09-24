@@ -34,13 +34,13 @@ fun CreateContactScreen(
     viewModel: CreateContactViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
             onNavigateBack()
         }
     }
-    
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -66,7 +66,7 @@ fun CreateContactScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Contact Image (with initials placeholder)
+
                 Card(
                     modifier = Modifier
                         .size(120.dp)
@@ -113,18 +113,17 @@ fun CreateContactScreen(
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
                     text = stringResource(R.string.tap_image_change),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
-                // Form Fields
+
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = viewModel::updateName,
@@ -134,9 +133,9 @@ fun CreateContactScreen(
                     isError = uiState.nameError != null,
                     supportingText = { uiState.nameError?.let { Text(stringResource(R.string.err_name_required)) } }
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 OutlinedTextField(
                     value = uiState.lastName,
                     onValueChange = viewModel::updateLastName,
@@ -146,9 +145,9 @@ fun CreateContactScreen(
                     isError = uiState.lastNameError != null,
                     supportingText = { uiState.lastNameError?.let { Text(stringResource(R.string.err_lastname_required)) } }
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 OutlinedTextField(
                     value = uiState.phone,
                     onValueChange = { input ->
@@ -168,9 +167,9 @@ fun CreateContactScreen(
                         }
                     }
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Button(
                     onClick = viewModel::saveContact,
                     modifier = Modifier.fillMaxWidth(),
@@ -185,7 +184,7 @@ fun CreateContactScreen(
                     }
                     Text(text = if (uiState.isLoading) stringResource(R.string.saving) else stringResource(R.string.save))
                 }
-                
+
                 uiState.error?.let { error ->
                     val msg = when (error) {
                         StringConstants.ERR_FIX_FIELDS -> stringResource(R.string.err_fix_fields)

@@ -40,7 +40,7 @@ fun SettingsScreen(
     LaunchedEffect(uiState.showSyncSuccess) {
         if (uiState.showSyncSuccess) {
             snackbarHostState.showSnackbar(
-                message = "Contacts synced successfully" // This should use stringResource in real implementation
+                message = "Contacts synced successfully"
             )
             viewModel.dismissSyncSuccess()
         }
@@ -76,7 +76,7 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Language Setting
+
             SettingItem(
                 icon = Icons.Default.Person,
                 title = stringResource(R.string.language),
@@ -86,7 +86,6 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            // Sync Setting
             SettingItem(
                 icon = Icons.Default.Add,
                 title = stringResource(R.string.action_sync),
@@ -100,7 +99,6 @@ fun SettingsScreen(
         }
     }
 
-    // Language Selection Dialog
     if (uiState.isLanguageDialogVisible) {
         LanguageSelectionDialog(
             languages = uiState.availableLanguages,

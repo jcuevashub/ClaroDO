@@ -28,9 +28,13 @@ class LanguageManager @Inject constructor(
     }
 
     suspend fun setLanguage(languageCode: String) {
+
         context.dataStore.edit { preferences ->
             preferences[languageKey] = languageCode
         }
+
+        val prefs = context.getSharedPreferences("language_temp", Context.MODE_PRIVATE)
+        prefs.edit().putString("selected_language", languageCode).apply()
     }
 
     private fun getSystemLanguage(): String {

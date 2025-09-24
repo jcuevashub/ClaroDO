@@ -11,7 +11,7 @@ class SyncContactsUseCase @Inject constructor(
         return if (repository is ContactRepositoryEnhanced) {
             repository.forceSync()
         } else {
-            Result.success(Unit) // No-op for local-only repository
+            Result.success(Unit)
         }
     }
 }
