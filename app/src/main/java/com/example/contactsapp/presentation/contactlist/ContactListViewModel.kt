@@ -23,8 +23,41 @@ class ContactListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContactListUiState())
-    val uiState: StateFlow<ContactListUiState> = _uiState.asStateFlow()
-    
+    private val _allContacts = MutableStateFlow<List<Contact>>(emptyList())
+    private val _searchQuery = MutableStateFlow("")
+
+    val uiState: StateFlow<ContactListUiState> = combine(
+        _uiState,
+        _allContacts,
+        _searchQuery
+    ) { state, allContacts, searchQuery ->
+        val filteredContacts = if (searchQuery.isBlank()) {
+            allContacts
+        } else {
+            allContacts.filter { contact ->
+                "${contact.name} ${contact.lastName}".contains(searchQuery, ignoreCase = true) ||
+                contact.phone.contains(searchQuery)
+            }
+        }
+
+        val groupedContacts = filteredContacts.groupBy { contact ->
+            contact.name.firstOrNull()?.uppercaseChar() ?: '?'
+        }
+        val availableLetters = groupedContacts.keys.toSet()
+
+        state.copy(
+            contacts = filteredContacts,
+            searchQuery = searchQuery,
+            isSearchActive = searchQuery.isNotBlank(),
+            groupedContacts = groupedContacts,
+            availableLetters = availableLetters
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ContactListUiState()
+    )
+
     private var contactsJob: kotlinx.coroutines.Job? = null
 
     init {
@@ -40,16 +73,9 @@ class ContactListViewModel @Inject constructor(
 
             try {
                 getContactsUseCase().collect { contacts ->
-                    val groupedContacts = contacts.groupBy { contact ->
-                        contact.name.firstOrNull()?.uppercaseChar() ?: '?'
-                    }
-                    val availableLetters = groupedContacts.keys.toSet()
-
+                    _allContacts.value = contacts
                     _uiState.update {
                         it.copy(
-                            contacts = contacts,
-                            groupedContacts = groupedContacts,
-                            availableLetters = availableLetters,
                             isLoading = false,
                             showSkeletonLoader = false,
                             error = null
@@ -69,51 +95,13 @@ class ContactListViewModel @Inject constructor(
     }
 
     fun updateSearchQuery(query: String) {
-        _uiState.update { 
-            it.copy(
-                searchQuery = query,
-                isSearchActive = query.isNotBlank()
-            )
-        }
-        
-        performSearch(query)
-    }
-    
-    private fun performSearch(query: String) {
-        contactsJob?.cancel()
-        contactsJob = viewModelScope.launch {
-            try {
-                if (query.isBlank()) {
-                    getContactsUseCase().collect { contacts ->
-                        _uiState.update { it.copy(contacts = contacts) }
-                    }
-                } else {
-                    searchContactsUseCase(query).collect { contacts ->
-                        _uiState.update { it.copy(contacts = contacts) }
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
-            }
-        }
+        _searchQuery.value = query
     }
 
     fun clearSearch() {
-        _uiState.update { 
-            it.copy(
-                searchQuery = StringConstants.EMPTY_STRING,
-                isSearchActive = false
-            )
-        }
-        performSearch(StringConstants.EMPTY_STRING)
+        _searchQuery.value = StringConstants.EMPTY_STRING
     }
 
-    fun setSearchActive(active: Boolean) {
-        _uiState.update { it.copy(isSearchActive = active) }
-        if (!active && _uiState.value.searchQuery.isBlank()) {
-            performSearch(StringConstants.EMPTY_STRING)
-        }
-    }
 
     fun toggleContactSelection(contact: Contact) {
         val currentSelection = _uiState.value.selectedContacts
@@ -182,7 +170,7 @@ class ContactListViewModel @Inject constructor(
     }
 
     fun scrollToLetter(letter: Char): Int {
-        val contacts = _uiState.value.contacts
+        val contacts = _allContacts.value
         return contacts.indexOfFirst { contact ->
             contact.name.firstOrNull()?.uppercaseChar() == letter
         }.takeIf { it >= 0 } ?: 0

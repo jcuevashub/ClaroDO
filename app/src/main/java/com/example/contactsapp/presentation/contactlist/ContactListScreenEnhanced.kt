@@ -74,86 +74,63 @@ fun ContactListScreenEnhanced(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                var searchActive by remember { mutableStateOf(false) }
-
-                val onActiveChange: (Boolean) -> Unit = { isActive ->
-                    searchActive = isActive
-                    if (!isActive) {
-                        viewModel.clearSearch()
-                    }
-                }
-
-                EnhancedSearchBar(
+                SimpleSearchField(
                     query = uiState.searchQuery,
                     onQueryChange = viewModel::updateSearchQuery,
-                    searchActive = searchActive,
-                    onActiveChange = onActiveChange,
-                    searchResults = uiState.displayedContacts.take(5),
-                    onResultClick = { contact ->
-                        searchActive = false
-                        viewModel.clearSearch()
-                    }
+                    onClearClick = viewModel::clearSearch
                 )
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = viewModel::refresh,
+                    state = pullToRefreshState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        when {
+                            uiState.showSkeletonLoader -> {
+                                ContactListSkeleton(
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
 
-                if (!searchActive) {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = viewModel::refresh,
-                        state = pullToRefreshState,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            when {
-                                uiState.showSkeletonLoader -> {
-                                    ContactListSkeleton(
-                                        modifier = Modifier.weight(1f)
+                            uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
+                                EnhancedEmptyState(
+                                    isSearchActive = uiState.isSearchActive,
+                                    onCreateContact = onNavigateToCreateContact,
+                                    onClearSearch = viewModel::clearSearch,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            else -> {
+                                EnhancedContactList(
+                                    contacts = uiState.displayedContacts,
+                                    selectedContacts = uiState.selectedContacts,
+                                    isSelectionMode = uiState.isSelectionMode,
+                                    onContactClick = viewModel::toggleContactSelection,
+                                    onContactDelete = viewModel::deleteContactBySwipe,
+                                    listState = listState,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                if (uiState.availableLetters.isNotEmpty() && uiState.searchQuery.isEmpty()) {
+                                    AlphabetIndex(
+                                        availableLetters = uiState.availableLetters,
+                                        onLetterClick = { letter ->
+                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            val index = viewModel.scrollToLetter(letter)
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .padding(end = 8.dp)
                                     )
-                                }
-
-                                uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
-                                    EnhancedEmptyState(
-                                        isSearchActive = uiState.isSearchActive,
-                                        onCreateContact = onNavigateToCreateContact,
-                                        onClearSearch = viewModel::clearSearch,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-
-                                else -> {
-                                    EnhancedContactList(
-                                        contacts = uiState.displayedContacts,
-                                        selectedContacts = uiState.selectedContacts,
-                                        isSelectionMode = uiState.isSelectionMode,
-                                        onContactClick = viewModel::toggleContactSelection,
-                                        onContactDelete = viewModel::deleteContactBySwipe,
-                                        listState = listState,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    if (uiState.availableLetters.isNotEmpty()) {
-                                        AlphabetIndex(
-                                            availableLetters = uiState.availableLetters,
-                                            onLetterClick = { letter ->
-                                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                val index = viewModel.scrollToLetter(letter)
-                                                coroutineScope.launch {
-                                                    listState.animateScrollToItem(index)
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxHeight()
-                                                .padding(end = 8.dp)
-                                        )
-                                    }
                                 }
                             }
                         }
                     }
-                } else {
-                    EnhancedSearchSuggestions(
-                        query = uiState.searchQuery,
-                        modifier = Modifier.fillMaxSize()
-                    )
                 }
             }
         }
@@ -250,92 +227,6 @@ private fun AnimatedTopAppBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EnhancedSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    searchActive: Boolean,
-    onActiveChange: (Boolean) -> Unit,
-    searchResults: List<Contact>,
-    onResultClick: (Contact) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    DockedSearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = {},
-                expanded = searchActive,
-                onExpandedChange = onActiveChange,
-                placeholder = { Text(stringResource(R.string.search_contacts)) },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = stringResource(R.string.search)
-                    )
-                },
-                trailingIcon = {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = {
-                            onQueryChange("")
-                            onActiveChange(false)
-                        }) {
-                            Icon(
-                                Icons.Default.Clear,
-                                contentDescription = stringResource(R.string.clear_search_desc)
-                            )
-                        }
-                    }
-                }
-            )
-        },
-        expanded = searchActive,
-        onExpandedChange = onActiveChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        content = {
-            if (query.isNotEmpty() && searchResults.isNotEmpty()) {
-                LazyColumn {
-                    items(searchResults) { contact ->
-                        SearchResultItem(
-                            contact = contact,
-                            onClick = { onResultClick(contact) }
-                        )
-                    }
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun SearchResultItem(
-    contact: Contact,
-    onClick: () -> Unit
-) {
-    ListItem(
-        headlineContent = {
-            Text("${contact.name} ${contact.lastName}")
-        },
-        supportingContent = {
-            Text(contact.phone)
-        },
-        leadingContent = {
-            DynamicAvatar(
-                name = contact.name,
-                lastName = contact.lastName,
-                imageUrl = contact.imageUrl,
-                size = 40.dp
-            )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    )
-}
 
 @Composable
 private fun EnhancedEmptyState(
@@ -394,43 +285,3 @@ private fun EnhancedEmptyState(
     }
 }
 
-@Composable
-private fun EnhancedSearchSuggestions(
-    query: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.outline
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = if (query.isEmpty()) stringResource(R.string.search_contacts)
-            else stringResource(R.string.searching, query),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = if (query.isEmpty()) stringResource(R.string.search_hint)
-            else stringResource(R.string.search_results_hint),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
