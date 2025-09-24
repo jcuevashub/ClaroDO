@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.contactsapp.presentation.contactlist.ContactListScreenEnhanced
-import com.example.contactsapp.presentation.createcontact.CreateContactScreen
+import com.example.contactsapp.presentation.createcontact.EnhancedCreateContactScreen
 import com.example.contactsapp.presentation.settings.SettingsScreen
 
 @Composable
@@ -28,7 +28,7 @@ fun NavGraph(
             )
         }
         composable(Routes.CREATE_CONTACT) {
-            CreateContactScreen(
+            EnhancedCreateContactScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }

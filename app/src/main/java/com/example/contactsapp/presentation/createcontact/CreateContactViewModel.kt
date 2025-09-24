@@ -20,17 +20,30 @@ class CreateContactViewModel @Inject constructor(
     val uiState: StateFlow<CreateContactUiState> = _uiState.asStateFlow()
 
     fun updateName(name: String) {
-        val err = if (name.isBlank()) ValidationConstants.ERR_NAME_REQUIRED else null
+        val trimmedName = name.trim()
+        val err = when {
+            trimmedName.isEmpty() && name.isNotEmpty() -> null
+            trimmedName.isEmpty() -> ValidationConstants.ERR_NAME_REQUIRED
+            trimmedName.length < 2 -> ValidationConstants.ERR_NAME_REQUIRED
+            else -> null
+        }
         _uiState.update { it.copy(name = name, nameError = err, error = null) }
     }
 
     fun updateLastName(lastName: String) {
-        val err = if (lastName.isBlank()) ValidationConstants.ERR_LASTNAME_REQUIRED else null
+        val trimmedLastName = lastName.trim()
+        val err = when {
+            trimmedLastName.isEmpty() && lastName.isNotEmpty() -> null
+            trimmedLastName.isEmpty() -> ValidationConstants.ERR_LASTNAME_REQUIRED
+            trimmedLastName.length < 2 -> ValidationConstants.ERR_LASTNAME_REQUIRED
+            else -> null
+        }
         _uiState.update { it.copy(lastName = lastName, lastNameError = err, error = null) }
     }
 
     fun updatePhone(phone: String) {
         val digitsOnly = phone.filter { it.isDigit() }.take(ValidationConstants.PHONE_DIGITS_LENGTH)
+        val formattedPhone = formatPhoneNumber(digitsOnly)
 
         val err = when {
             digitsOnly.isEmpty() -> null
@@ -44,7 +57,24 @@ class CreateContactViewModel @Inject constructor(
             else -> null
         }
 
-        _uiState.update { it.copy(phone = digitsOnly, phoneError = err, error = null) }
+        _uiState.update {
+            it.copy(
+                phone = digitsOnly,
+                formattedPhone = formattedPhone,
+                phoneError = err,
+                error = null
+            )
+        }
+    }
+
+    private fun formatPhoneNumber(digits: String): String {
+        return when (digits.length) {
+            0, 1, 2 -> digits
+            3 -> digits
+            4, 5, 6 -> "${digits.substring(0, 3)}-${digits.substring(3)}"
+            7, 8, 9, 10 -> "${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+            else -> digits
+        }
     }
 
     fun refreshImage() {
@@ -69,13 +99,14 @@ class CreateContactViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isSaving = true, isLoading = true, error = null) }
 
             createContactUseCase(contact)
                 .onSuccess {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            isSaving = false,
                             isSaved = true,
                             error = null
                         )
@@ -88,7 +119,13 @@ class CreateContactViewModel @Inject constructor(
                         StringConstants.ERR_PHONE -> StringConstants.ERR_PHONE
                         else -> StringConstants.ERR_UNKNOWN
                     }
-                    _uiState.update { it.copy(isLoading = false, error = msg) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSaving = false,
+                            error = msg
+                        )
+                    }
                 }
         }
     }
