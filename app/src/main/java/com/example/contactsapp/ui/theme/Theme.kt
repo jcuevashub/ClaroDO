@@ -54,9 +54,8 @@ private val ClaroLightColorScheme = lightColorScheme(
 )
 
 private val ClaroDarkColorScheme = darkColorScheme(
-    primary = ClaroFuchsia,
     onPrimary = ClaroWhite,
-    primaryContainer = ClaroFuchsia.copy(alpha = 0.3f),
+    primaryContainer = ClaroDarkGray.copy(alpha = 0.3f),
     onPrimaryContainer = ClaroWhite,
 
     secondary = ClaroLightBlue,
@@ -81,10 +80,7 @@ private val ClaroDarkColorScheme = darkColorScheme(
     outline = ClaroDarkGray,
     outlineVariant = ClaroDarkGray.copy(alpha = 0.6f),
 
-    error = Color(0xFFFF6B6B),
-    onError = ClaroBlack,
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
+    onError = ClaroFuchsia,
 
     inverseSurface = ClaroWhite,
     inverseOnSurface = ClaroBlack,

@@ -1,39 +1,63 @@
 package com.example.contactsapp.presentation.contactlist
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.material3.ListItem
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import androidx.compose.ui.text.style.TextAlign
-import com.example.contactsapp.domain.model.Contact
-import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
 import com.example.contactsapp.common.StringConstants
+import com.example.contactsapp.presentation.components.AlphabetIndex
+import com.example.contactsapp.presentation.components.ContactList
+import com.example.contactsapp.presentation.components.ContactListSkeleton
+import com.example.contactsapp.presentation.components.SimpleSearchField
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ContactListScreen(
     onNavigateToCreateContact: () -> Unit,
@@ -42,257 +66,90 @@ fun ContactListScreen(
     viewModel: ContactListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(uiState.error) { }
-
-    var snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val hapticFeedback = LocalHapticFeedback.current
+    val pullToRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.title_contacts)) },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
-                    }
-                    IconButton(onClick = onNavigateToCreateContact) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_new))
-                    }
-                    val canDelete = uiState.selectedContacts.isNotEmpty()
-                    IconButton(onClick = viewModel::deleteSelectedContacts, enabled = canDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.action_delete),
-                            tint = if (canDelete) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline
-                        )
-                    }
-                }
+                selectedCount = uiState.selectedCount,
+                isSelectionMode = uiState.isSelectionMode,
+                onSettingsClick = onNavigateToSettings,
+                onAddClick = onNavigateToCreateContact,
+                onDeleteClick = viewModel::deleteSelectedContacts,
+                onClearSelection = viewModel::clearSelection
             )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
-        },
-        bottomBar = {}
+        }
     ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            var searchActive by remember { mutableStateOf(false) }
+        Box(modifier = modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                SimpleSearchField(
+                    query = uiState.searchQuery,
+                    onQueryChange = viewModel::updateSearchQuery,
+                    onClearClick = viewModel::clearSearch
+                )
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = viewModel::refresh,
+                    state = pullToRefreshState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        when {
+                            uiState.showSkeletonLoader -> {
+                                ContactListSkeleton(
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
 
-            val onActiveChange: (Boolean) -> Unit = { isActive ->
-                searchActive = isActive
-                if (!isActive) {
-                    viewModel.clearSearch()
-                }
-            }
-            DockedSearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = uiState.searchQuery,
-                        onQueryChange = viewModel::updateSearchQuery,
-                        onSearch = {  },
-                        expanded = searchActive,
-                        onExpandedChange = onActiveChange,
-                        placeholder = { Text(stringResource(R.string.search_contacts)) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search)
-                            )
-                        },
-                        trailingIcon = {
-                            if (uiState.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = {
-                                    viewModel.clearSearch()
-                                    searchActive = false
-                                }) {
-                                    Icon(
-                                        Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.clear_search_desc)
+                            uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
+                                EnhancedEmptyState(
+                                    isSearchActive = uiState.isSearchActive,
+                                    onCreateContact = onNavigateToCreateContact,
+                                    onClearSearch = viewModel::clearSearch,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            else -> {
+                                ContactList(
+                                    contacts = uiState.displayedContacts,
+                                    selectedContacts = uiState.selectedContacts,
+                                    isSelectionMode = uiState.isSelectionMode,
+                                    onContactClick = viewModel::toggleContactSelection,
+                                    onContactDelete = viewModel::deleteContactBySwipe,
+                                    listState = listState,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                if (uiState.availableLetters.isNotEmpty() && uiState.searchQuery.isEmpty()) {
+                                    AlphabetIndex(
+                                        availableLetters = uiState.availableLetters,
+                                        onLetterClick = { letter ->
+                                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            val index = viewModel.scrollToLetter(letter)
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .padding(end = 8.dp)
                                     )
                                 }
                             }
-                        },
-
-                    )
-                },
-                expanded = searchActive,
-                onExpandedChange = onActiveChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                content = {
-
-                    if (uiState.searchQuery.isNotEmpty() && uiState.displayedContacts.isNotEmpty()) {
-                        LazyColumn {
-                            items(uiState.displayedContacts.take(3)) { contact ->
-                                ListItem(
-                                    headlineContent = {
-                                        Text(contact.name + StringConstants.SPACE + contact.lastName)
-                                    },
-                                    supportingContent = {
-                                        Text(contact.phone)
-                                    },
-                                    leadingContent = {
-                                        Surface(
-                                            modifier = Modifier.size(40.dp),
-                                            shape = CircleShape,
-                                            color = MaterialTheme.colorScheme.secondaryContainer
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                val initials = (listOfNotNull(contact.name, contact.lastName)
-                                                    .filter { it.isNotBlank() }
-                                                    .map { it.trim().firstOrNull()?.uppercase() ?: StringConstants.EMPTY_STRING }
-                                                    .take(2)
-                                                    .joinToString(StringConstants.EMPTY_STRING)
-                                                    ).ifBlank { stringResource(R.string.contact_initial_placeholder) }
-                                                Text(
-                                                    text = initials,
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                                )
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-
-                                            searchActive = false
-                                            viewModel.clearSearch()
-                                        }
-                                )
-                            }
-                        }
-                    } else if (uiState.searchQuery.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.empty_search),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
-                }
-            )
-
-            if (!searchActive) {
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                    uiState.displayedContacts.isEmpty() && !uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val emptyText = if (uiState.isSearchActive) stringResource(R.string.empty_search) else stringResource(R.string.empty_list)
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(56.dp)
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = emptyText,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = if (uiState.isSearchActive) stringResource(R.string.empty_hint_search) else stringResource(R.string.empty_hint_create),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(16.dp))
-                            if (!uiState.isSearchActive) {
-                                Button(onClick = onNavigateToCreateContact) {
-                                    Icon(Icons.Default.Add, contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(stringResource(R.string.add_contact))
-                                }
-                            } else {
-                                OutlinedButton(onClick = { viewModel.clearSearch() }) {
-                                    Icon(Icons.Default.Clear, contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(stringResource(R.string.clear_search))
-                                }
-                            }
-                        }
-                    }
-                }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(uiState.displayedContacts) { contact ->
-                                ContactItem(
-                                    contact = contact,
-                                    isSelected = uiState.selectedContacts.contains(contact),
-                                    isSelectionMode = uiState.isSelectionMode,
-                                    onSelectionToggle = { viewModel.toggleContactSelection(contact) }
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = if (uiState.searchQuery.isEmpty()) {
-                            stringResource(R.string.search_contacts)
-                        } else {
-                            stringResource(R.string.searching, uiState.searchQuery)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (uiState.searchQuery.isEmpty()) {
-                            stringResource(R.string.search_hint)
-                        } else {
-                            stringResource(R.string.search_results_hint)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -311,133 +168,138 @@ fun ContactListScreen(
 }
 
 @Composable
-private fun ContactItem(
-    contact: Contact,
-    isSelected: Boolean,
+private fun TopAppBar(
+    selectedCount: Int,
     isSelectionMode: Boolean,
-    onSelectionToggle: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onAddClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onClearSelection: () -> Unit
+) {
+    AnimatedTopAppBar(
+        title = if (isSelectionMode) {
+            stringResource(R.string.selection_count, selectedCount)
+        } else {
+            stringResource(R.string.title_contacts)
+        },
+        isSelectionMode = isSelectionMode,
+        navigationIcon = if (isSelectionMode) {
+            {
+                IconButton(onClick = onClearSelection) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear selection")
+                }
+            }
+        } else null,
+        actions = {
+            if (!isSelectionMode) {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                }
+                IconButton(onClick = onAddClick) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_new))
+                }
+            } else {
+                IconButton(
+                    onClick = onDeleteClick,
+                    enabled = selectedCount > 0
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.action_delete),
+                        tint = if (selectedCount > 0) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AnimatedTopAppBar(
+    title: String,
+    isSelectionMode: Boolean,
+    navigationIcon: (@Composable () -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit
+) {
+    val animatedColor by animateColorAsState(
+        targetValue = if (isSelectionMode) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(300),
+        label = "topBarColor"
+    )
+
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                fontWeight = if (isSelectionMode) FontWeight.Bold else FontWeight.Normal
+            )
+        },
+        navigationIcon = navigationIcon ?: {},
+        actions = actions,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = animatedColor
+        )
+    )
+}
+
+
+@Composable
+private fun EnhancedEmptyState(
+    isSearchActive: Boolean,
+    onCreateContact: () -> Unit,
+    onClearSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .clickable { onSelectionToggle() },
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        )
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val hasImage = contact.imageUrl.isNotBlank()
-            if (hasImage) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(contact.imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = stringResource(R.string.photo_of, contact.name),
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+            val emptyText = if (isSearchActive) stringResource(R.string.empty_search)
+            else stringResource(R.string.empty_list)
+
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(72.dp)
+            )
+
+            Text(
+                text = emptyText,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Medium
+            )
+
+            Text(
+                text = if (isSearchActive) stringResource(R.string.empty_hint_search)
+                else stringResource(R.string.empty_hint_create),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            if (!isSearchActive) {
+                Button(onClick = onCreateContact) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.add_contact))
+                }
             } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Box(
-                            modifier = Modifier.size(56.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val initials = (listOfNotNull(contact.name, contact.lastName)
-                                .filter { it.isNotBlank() }
-                                .map { it.trim().firstOrNull()?.uppercase() ?: StringConstants.EMPTY_STRING }
-                                .take(2)
-                                .joinToString(StringConstants.EMPTY_STRING)
-                                ).ifBlank { stringResource(R.string.contact_initial_placeholder) }
-                            Text(
-                                text = initials,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = contact.name + StringConstants.SPACE + contact.lastName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                val countryCode = stringResource(R.string.country_code)
-                val formattedPhone = remember(contact.phone, countryCode) {
-                    val digits = contact.phone.filter { it.isDigit() }
-                    if (digits.length >= 2) {
-                        buildString {
-                            append(countryCode)
-                            append(' ')
-                            if (digits.length >= 4) {
-                                append(digits.substring(1, 4))
-                                append('-')
-                                val rest = digits.substring(4)
-                                if (rest.length <= 3) {
-                                    append(rest)
-                                } else {
-                                    append(rest.substring(0, 3))
-                                    append('-')
-                                    append(rest.substring(3))
-                                }
-                            } else {
-                                append(digits.substring(1))
-                            }
-                        }
-                    } else digits
-                }
-                Text(
-                    text = formattedPhone,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (isSelectionMode) {
-                if (isSelected) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = stringResource(R.string.selected),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = stringResource(R.string.not_selected),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
+                OutlinedButton(onClick = onClearSearch) {
+                    Icon(Icons.Default.Clear, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.clear_search))
                 }
             }
         }
     }
 }
+

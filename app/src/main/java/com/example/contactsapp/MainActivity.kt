@@ -60,23 +60,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ContactsAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val navController = rememberNavController()
-                    val currentLanguage by languageManager.currentLanguage.collectAsStateWithLifecycle(
-                        initialValue = "es"
-                    )
+                val navController = rememberNavController()
+                val currentLanguage by languageManager.currentLanguage.collectAsStateWithLifecycle(
+                    initialValue = "es"
+                )
 
-                    LaunchedEffect(currentLanguage) {
+                LaunchedEffect(currentLanguage) {
 
-                    }
-
-                    NavGraph(
-                        navController = navController,
-                        onLanguageChanged = {
-                            recreate()
-                        }
-                    )
                 }
+
+                NavGraph(
+                    navController = navController,
+                    onLanguageChanged = {
+                        recreate()
+                    }
+                )
             }
         }
     }
