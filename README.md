@@ -157,7 +157,7 @@ app/src/main/java/com/example/contactsapp/
 
 1. **Clonar el repositorio**
 ```bash
-git clone <repository-url>
+git clone https://github.com/jcuevashub/ClaroDO
 cd ClaroDO
 ```
 
