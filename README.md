@@ -2,6 +2,11 @@
 
 <img src="https://github.com/jcuevashub/ClaroDO/raw/main/Screenshot_20250924_145741.png" 
      alt="Captura" 
+     height="300"
+     width="400"/>
+<img src="https://github.com/jcuevashub/ClaroDO/raw/main/Screenshot_20250924_145741.png" 
+     alt="Captura" 
+     height="300"
      width="400"/>
 
 Una aplicación Android nativa desarrollada en Kotlin con Jetpack Compose que permite gestionar contactos con una interfaz moderna y funcionalidades avanzadas.
