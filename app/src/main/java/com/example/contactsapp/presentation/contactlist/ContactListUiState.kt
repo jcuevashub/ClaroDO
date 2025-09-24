@@ -1,10 +1,11 @@
 package com.example.contactsapp.presentation.contactlist
 
 import com.example.contactsapp.domain.model.Contact
+import com.example.contactsapp.common.StringConstants
 
 data class ContactListUiState(
     val contacts: List<Contact> = emptyList(),
-    val searchQuery: String = "",
+    val searchQuery: String = StringConstants.EMPTY_STRING,
     val isSearchActive: Boolean = false,
     val selectedContacts: Set<Contact> = emptySet(),
     val isLoading: Boolean = false,

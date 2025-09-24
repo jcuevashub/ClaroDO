@@ -1,11 +1,12 @@
 package com.example.contactsapp.domain.usecase
 
+import com.example.contactsapp.common.StringConstants
+import com.example.contactsapp.data.repository.ContactRepositoryEnhanced
 import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.repository.ContactRepository
-import com.example.contactsapp.common.StringConstants
 import javax.inject.Inject
 
-class CreateContactUseCase @Inject constructor(
+class UpdateContactUseCase @Inject constructor(
     private val repository: ContactRepository
 ) {
     suspend operator fun invoke(contact: Contact): Result<Unit> {
@@ -15,8 +16,13 @@ class CreateContactUseCase @Inject constructor(
                 contact.lastName.isBlank() -> Result.failure(Exception(StringConstants.ERR_LASTNAME))
                 contact.phone.isBlank() -> Result.failure(Exception(StringConstants.ERR_PHONE))
                 else -> {
-                    repository.insertContact(contact)
-                    Result.success(Unit)
+                    if (repository is ContactRepositoryEnhanced) {
+                        repository.updateContact(contact)
+                    } else {
+                        // Fallback for basic repository - treat as insert
+                        repository.insertContact(contact)
+                        Result.success(Unit)
+                    }
                 }
             }
         } catch (e: Exception) {

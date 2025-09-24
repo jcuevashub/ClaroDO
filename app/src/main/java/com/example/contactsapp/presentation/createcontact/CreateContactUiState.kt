@@ -1,10 +1,12 @@
 package com.example.contactsapp.presentation.createcontact
 
+import com.example.contactsapp.common.StringConstants
+
 data class CreateContactUiState(
-    val name: String = "",
-    val lastName: String = "",
-    val phone: String = "",
-    val imageUrl: String = "https://picsum.photos/200",
+    val name: String = StringConstants.EMPTY_STRING,
+    val lastName: String = StringConstants.EMPTY_STRING,
+    val phone: String = StringConstants.EMPTY_STRING,
+    val imageUrl: String = StringConstants.DEFAULT_AVATAR_URL,
     val isLoading: Boolean = false,
     val error: String? = null,
     val nameError: String? = null,

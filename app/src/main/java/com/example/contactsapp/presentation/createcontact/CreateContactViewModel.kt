@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.usecase.CreateContactUseCase
+import com.example.contactsapp.common.StringConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -48,18 +49,18 @@ class CreateContactViewModel @Inject constructor(
 
     fun refreshImage() {
         val randomId = Random.nextInt(1, 1000)
-        val newImageUrl = "https://picsum.photos/200?random=$randomId"
+        val newImageUrl = StringConstants.RANDOM_AVATAR_URL_TEMPLATE + randomId
         _uiState.update { it.copy(imageUrl = newImageUrl) }
     }
 
     fun saveContact() {
         val state = _uiState.value
         if (!state.isFormValid) {
-            _uiState.update { it.copy(error = "ERR_FIX_FIELDS") }
+            _uiState.update { it.copy(error = StringConstants.ERR_FIX_FIELDS) }
             return
         }
 
-        val normalizedPhone = if (state.phone.length == ValidationConstants.PHONE_DIGITS_LENGTH) "1${state.phone}" else state.phone
+        val normalizedPhone = if (state.phone.length == ValidationConstants.PHONE_DIGITS_LENGTH) StringConstants.COUNTRY_CODE_1 + state.phone else state.phone
         val contact = Contact(
             name = state.name.trim(),
             lastName = state.lastName.trim(),
@@ -82,10 +83,10 @@ class CreateContactViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     val msg = when (error.message) {
-                        "ERR_NAME" -> "ERR_NAME"
-                        "ERR_LASTNAME" -> "ERR_LASTNAME"
-                        "ERR_PHONE" -> "ERR_PHONE"
-                        else -> "ERR_UNKNOWN"
+                        StringConstants.ERR_NAME -> StringConstants.ERR_NAME
+                        StringConstants.ERR_LASTNAME -> StringConstants.ERR_LASTNAME
+                        StringConstants.ERR_PHONE -> StringConstants.ERR_PHONE
+                        else -> StringConstants.ERR_UNKNOWN
                     }
                     _uiState.update { it.copy(isLoading = false, error = msg) }
                 }

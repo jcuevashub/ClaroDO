@@ -2,13 +2,14 @@ package com.example.contactsapp.data.local
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import com.example.contactsapp.common.StringConstants
 
 @Dao
 interface ContactDao {
-    @Query("SELECT * FROM contacts ORDER BY name ASC")
+    @Query(StringConstants.QUERY_ALL_CONTACTS)
     fun getAllContacts(): Flow<List<ContactEntity>>
 
-    @Query("SELECT * FROM contacts WHERE name LIKE :query OR lastName LIKE :query OR phone LIKE :query ORDER BY name ASC")
+    @Query(StringConstants.QUERY_SEARCH_CONTACTS)
     fun searchContacts(query: String): Flow<List<ContactEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

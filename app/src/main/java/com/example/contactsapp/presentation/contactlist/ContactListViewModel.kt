@@ -6,6 +6,7 @@ import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.usecase.DeleteContactsUseCase
 import com.example.contactsapp.domain.usecase.GetContactsUseCase
 import com.example.contactsapp.domain.usecase.SearchContactsUseCase
+import com.example.contactsapp.common.StringConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class ContactListViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "ERR_UNKNOWN") }
+                _uiState.update { it.copy(isLoading = false, error = StringConstants.ERR_UNKNOWN) }
             }
         }
     }
@@ -75,7 +76,7 @@ class ContactListViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "ERR_UNKNOWN") }
+                _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
             }
         }
     }
@@ -83,12 +84,12 @@ class ContactListViewModel @Inject constructor(
     fun clearSearch() {
         _uiState.update { 
             it.copy(
-                searchQuery = "",
+                searchQuery = StringConstants.EMPTY_STRING,
                 isSearchActive = false
             )
         }
         // Reset to show all contacts
-        performSearch("")
+        performSearch(StringConstants.EMPTY_STRING)
     }
 
     fun toggleContactSelection(contact: Contact) {
@@ -127,7 +128,7 @@ class ContactListViewModel @Inject constructor(
                         clearSelection()
                     }
                     .onFailure { _ ->
-                        _uiState.update { it.copy(error = "ERR_UNKNOWN", isLoading = false) }
+                        _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN, isLoading = false) }
                     }
             }
         }

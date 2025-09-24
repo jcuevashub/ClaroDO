@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
+import com.example.contactsapp.common.StringConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +80,7 @@ fun CreateContactScreen(
                                 .data(uiState.imageUrl)
                                 .crossfade(true)
                                 .build(),
-                            contentDescription = stringResource(R.string.photo_of, uiState.name.ifBlank { "" }),
+                            contentDescription = stringResource(R.string.photo_of, uiState.name.ifBlank { StringConstants.EMPTY_STRING }),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
@@ -97,9 +98,9 @@ fun CreateContactScreen(
                             ) {
                                 val initials = listOf(uiState.name, uiState.lastName)
                                     .filter { it.isNotBlank() }
-                                    .map { it.trim().firstOrNull()?.uppercase() ?: "" }
+                                    .map { it.trim().firstOrNull()?.uppercase() ?: StringConstants.EMPTY_STRING }
                                     .take(2)
-                                    .joinToString("")
+                                    .joinToString(StringConstants.EMPTY_STRING)
                                     .ifBlank { stringResource(R.string.contact_initial_placeholder) }
                                 Text(
                                     text = initials,
@@ -187,11 +188,11 @@ fun CreateContactScreen(
                 
                 uiState.error?.let { error ->
                     val msg = when (error) {
-                        "ERR_FIX_FIELDS" -> stringResource(R.string.err_fix_fields)
-                        "ERR_NAME" -> stringResource(R.string.err_name_required)
-                        "ERR_LASTNAME" -> stringResource(R.string.err_lastname_required)
-                        "ERR_PHONE" -> stringResource(R.string.err_phone_invalid)
-                        "ERR_UNKNOWN" -> stringResource(R.string.err_save_contact)
+                        StringConstants.ERR_FIX_FIELDS -> stringResource(R.string.err_fix_fields)
+                        StringConstants.ERR_NAME -> stringResource(R.string.err_name_required)
+                        StringConstants.ERR_LASTNAME -> stringResource(R.string.err_lastname_required)
+                        StringConstants.ERR_PHONE -> stringResource(R.string.err_phone_invalid)
+                        StringConstants.ERR_UNKNOWN -> stringResource(R.string.err_save_contact)
                         else -> error
                     }
                     LaunchedEffect(error) { snackbarHostState.showSnackbar(msg) }

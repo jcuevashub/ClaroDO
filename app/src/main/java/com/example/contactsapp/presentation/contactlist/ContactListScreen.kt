@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.contactsapp.domain.model.Contact
 import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
+import com.example.contactsapp.common.StringConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +170,7 @@ fun ContactListScreen(
     
     uiState.error?.let { error ->
         val msg = when (error) {
-            "ERR_UNKNOWN" -> stringResource(R.string.err_unknown)
+            StringConstants.ERR_UNKNOWN -> stringResource(R.string.err_unknown)
             else -> error
         }
         LaunchedEffect(error) {
@@ -235,9 +236,9 @@ private fun ContactItem(
                         ) {
                             val initials = (listOfNotNull(contact.name, contact.lastName)
                                 .filter { it.isNotBlank() }
-                                .map { it.trim().firstOrNull()?.uppercase() ?: "" }
+                                .map { it.trim().firstOrNull()?.uppercase() ?: StringConstants.EMPTY_STRING }
                                 .take(2)
-                                .joinToString("")
+                                .joinToString(StringConstants.EMPTY_STRING)
                                 ).ifBlank { stringResource(R.string.contact_initial_placeholder) }
                             Text(
                                 text = initials,
@@ -257,7 +258,7 @@ private fun ContactItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "${contact.name} ${contact.lastName}",
+                    text = contact.name + StringConstants.SPACE + contact.lastName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )

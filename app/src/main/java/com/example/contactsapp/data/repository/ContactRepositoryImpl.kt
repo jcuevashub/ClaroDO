@@ -5,6 +5,7 @@ import com.example.contactsapp.data.local.toDomain
 import com.example.contactsapp.data.local.toEntity
 import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.repository.ContactRepository
+import com.example.contactsapp.common.StringConstants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override fun searchContacts(query: String): Flow<List<Contact>> {
-        return contactDao.searchContacts("%$query%").map { entities ->
+        return contactDao.searchContacts(StringConstants.PERCENT_WRAPPER + query + StringConstants.PERCENT_WRAPPER).map { entities ->
             entities.map { it.toDomain() }
         }
     }

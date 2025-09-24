@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.example.contactsapp.data.local.ContactDao
 import com.example.contactsapp.data.local.ContactDatabase
 import com.example.contactsapp.data.repository.ContactRepositoryImpl
+import com.example.contactsapp.data.repository.ContactRepositoryEnhanced
+import com.example.contactsapp.data.remote.ContactRemoteDataSource
 import com.example.contactsapp.domain.repository.ContactRepository
 import dagger.Module
 import dagger.Provides
@@ -33,7 +35,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideContactRepository(dao: ContactDao): ContactRepository {
-        return ContactRepositoryImpl(dao)
+    fun provideContactRepository(
+        dao: ContactDao,
+        remoteDataSource: ContactRemoteDataSource
+    ): ContactRepository {
+        // You can switch between implementations here
+        // return ContactRepositoryImpl(dao) // Local only
+        return ContactRepositoryEnhanced(dao, remoteDataSource) // Local + Remote
     }
 }
