@@ -2,12 +2,12 @@ package com.example.contactsapp.common
 
 object StringConstants {
 
-    // Error codes
+    // Error codes (for internal comparison)
     const val ERR_FIX_FIELDS = "ERR_FIX_FIELDS"
-    const val ERR_NAME = "El nombre no puede estar vacío"
-    const val ERR_LASTNAME = "El apellido no puede estar vacío"
-    const val ERR_PHONE = "El teléfono no puede estar vacío"
-    const val ERR_UNKNOWN = "Algo salió mal, por favor intenta más tarde"
+    const val ERR_NAME = "ERR_NAME"
+    const val ERR_LASTNAME = "ERR_LASTNAME"
+    const val ERR_PHONE = "ERR_PHONE"
+    const val ERR_UNKNOWN = "ERR_UNKNOWN"
 
     // URLs and formats
     const val DEFAULT_AVATAR_URL = "https://picsum.photos/200"
@@ -50,14 +50,18 @@ object StringConstants {
     // Network constants
     const val JSON_MEDIA_TYPE = "application/json"
 
-    // API error messages
-    const val API_ERROR_UNKNOWN = "Error desconocido de la API"
-    const val API_ERROR_EMPTY_RESPONSE = "Respuesta vacía del servidor"
-    const val API_ERROR_NO_INTERNET = "Sin conexión a internet"
-    const val API_ERROR_TIMEOUT = "Tiempo de espera agotado"
-    const val API_ERROR_BAD_REQUEST = "Solicitud inválida"
-    const val API_ERROR_UNAUTHORIZED = "No autorizado"
-    const val API_ERROR_FORBIDDEN = "Acceso prohibido"
-    const val API_ERROR_NOT_FOUND = "Recurso no encontrado"
-    const val API_ERROR_SERVER_ERROR = "Error interno del servidor"
+    // API error codes (for internal comparison - actual messages from StringResources)
+    const val API_ERROR_UNKNOWN = "API_ERROR_UNKNOWN"
+    const val API_ERROR_EMPTY_RESPONSE = "API_ERROR_EMPTY_RESPONSE"
+    const val API_ERROR_NO_INTERNET = "API_ERROR_NO_INTERNET"
+    const val API_ERROR_TIMEOUT = "API_ERROR_TIMEOUT"
+    const val API_ERROR_BAD_REQUEST = "API_ERROR_BAD_REQUEST"
+    const val API_ERROR_UNAUTHORIZED = "API_ERROR_UNAUTHORIZED"
+    const val API_ERROR_FORBIDDEN = "API_ERROR_FORBIDDEN"
+    const val API_ERROR_NOT_FOUND = "API_ERROR_NOT_FOUND"
+    const val API_ERROR_SERVER_ERROR = "API_ERROR_SERVER_ERROR"
+
+    // Language codes
+    const val LANG_ENGLISH = "en"
+    const val LANG_SPANISH = "es"
 }

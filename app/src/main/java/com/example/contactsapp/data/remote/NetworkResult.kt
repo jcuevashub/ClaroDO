@@ -1,7 +1,5 @@
 package com.example.contactsapp.data.remote
 
-import com.example.contactsapp.common.StringConstants
-
 sealed class NetworkResult<T> {
     data class Success<T>(val data: T) : NetworkResult<T>()
     data class Error<T>(val message: String, val code: Int? = null) : NetworkResult<T>()
@@ -14,10 +12,10 @@ suspend fun <T> safeApiCall(apiCall: suspend () -> retrofit2.Response<T>): Netwo
         if (response.isSuccessful) {
             response.body()?.let { body ->
                 NetworkResult.Success(body)
-            } ?: NetworkResult.Error(StringConstants.API_ERROR_EMPTY_RESPONSE)
+            } ?: NetworkResult.Error("Empty response")
         } else {
             NetworkResult.Error(
-                message = response.message() ?: StringConstants.API_ERROR_UNKNOWN,
+                message = response.message() ?: "Unknown error",
                 code = response.code()
             )
         }

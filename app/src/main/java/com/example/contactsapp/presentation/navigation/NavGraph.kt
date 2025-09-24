@@ -6,9 +6,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.contactsapp.presentation.contactlist.ContactListScreen
 import com.example.contactsapp.presentation.createcontact.CreateContactScreen
+import com.example.contactsapp.presentation.settings.SettingsScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(
+    navController: NavHostController,
+    onLanguageChanged: () -> Unit = {}
+) {
     NavHost(
         navController = navController,
         startDestination = Routes.CONTACT_LIST
@@ -17,6 +21,9 @@ fun NavGraph(navController: NavHostController) {
             ContactListScreen(
                 onNavigateToCreateContact = {
                     navController.navigate(Routes.CREATE_CONTACT)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Routes.SETTINGS)
                 }
             )
         }
@@ -25,6 +32,14 @@ fun NavGraph(navController: NavHostController) {
                 onNavigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLanguageChanged = onLanguageChanged
             )
         }
     }

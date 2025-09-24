@@ -1,43 +1,82 @@
 <resources>
+    <!-- App Info -->
     <string name="app_name">Contacts App</string>
-    <string name="title_contacts">Contactos</string>
-    <string name="action_new">Nuevo</string>
-    <string name="action_delete">Borrar</string>
-    <string name="fab_new_contact">Nuevo contacto</string>
-    <string name="search_placeholder">Buscar contactos...</string>
-    <string name="search">Buscar</string>
-    <string name="clear_search">Limpiar búsqueda</string>
-    <string name="empty_search">No se encontraron contactos</string>
-    <string name="empty_list">Aún no tienes contactos</string>
-    <string name="empty_hint_search">Intenta modificar tu búsqueda</string>
-    <string name="empty_hint_create">Crea tu primer contacto para empezar</string>
-    <string name="add_contact">Agregar contacto</string>
-    <string name="not_selected">No seleccionado</string>
-    <string name="selected">Seleccionado</string>
-    <string name="photo_of">Foto de %1$s</string>
-    <string name="new_contact">Nuevo Contacto</string>
-    <string name="cancel">Cancelar</string>
-    <string name="tap_image_change">Toca la imagen para cambiarla</string>
-    <string name="name">Nombre</string>
-    <string name="last_name">Apellido</string>
-    <string name="phone">Teléfono</string>
-    <string name="saving">Guardando...</string>
-    <string name="save">Guardar</string>
-    <string name="err_name_required">El nombre es obligatorio</string>
-    <string name="err_lastname_required">El apellido es obligatorio</string>
-    <string name="err_phone_invalid">Ingresa un teléfono válido</string>
-    <string name="err_phone_area">Código de área inválido (usa 809/829/849)</string>
-    <string name="err_fix_fields">Revisa los campos marcados en rojo</string>
-    <string name="err_save_contact">Error al guardar el contacto</string>
-    <string name="err_unknown">Error desconocido</string>
-    <string name="search_contacts">Buscar contactos...</string>
-    <string name="clear_search_desc">Limpiar búsqueda</string>
+
+    <!-- Navigation -->
+    <string name="title_contacts">Contacts</string>
+
+    <!-- Actions -->
+    <string name="action_new">New</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_sync">Sync</string>
+    <string name="fab_new_contact">New contact</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="saving">Saving...</string>
+    <string name="syncing">Syncing...</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Search contacts...</string>
+    <string name="search">Search</string>
+    <string name="clear_search">Clear search</string>
+    <string name="clear_search_desc">Clear search</string>
+    <string name="search_contacts">Search contacts...</string>
+
+    <!-- Empty States -->
+    <string name="empty_search">No contacts found</string>
+    <string name="empty_list">You don\'t have any contacts yet</string>
+    <string name="empty_hint_search">Try modifying your search</string>
+    <string name="empty_hint_create">Create your first contact to get started</string>
+
+    <!-- Contact Form -->
+    <string name="new_contact">New Contact</string>
+    <string name="add_contact">Add contact</string>
+    <string name="name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="phone">Phone</string>
+    <string name="tap_image_change">Tap image to change it</string>
+    <string name="photo_of">Photo of %1$s</string>
     <string name="contact_initial_placeholder">?</string>
+
+    <!-- Selection -->
+    <string name="not_selected">Not selected</string>
+    <string name="selected">Selected</string>
+
+    <!-- Phone -->
     <string name="country_code">+1</string>
-    <string name="contact_area_code">área</string>
-    <string name="err_name_inline">El nombre es obligatorio</string>
-    <string name="err_lastname_inline">El apellido es obligatorio</string>
-    <string name="err_phone_inline">Ingresa un teléfono válido</string>
-    <string name="err_area_code_inline">Código de área inválido (usa 809/829/849)</string>
+    <string name="contact_area_code">area</string>
     <string name="valid_area_codes">809,829,849</string>
+
+    <!-- Error Messages -->
+    <string name="err_name_required">First name is required</string>
+    <string name="err_lastname_required">Last name is required</string>
+    <string name="err_phone_invalid">Enter a valid phone number</string>
+    <string name="err_phone_area">Invalid area code (use 809/829/849)</string>
+    <string name="err_fix_fields">Check the fields marked in red</string>
+    <string name="err_save_contact">Error saving contact</string>
+    <string name="err_unknown">Unknown error</string>
+    <string name="err_name_inline">First name is required</string>
+    <string name="err_lastname_inline">Last name is required</string>
+    <string name="err_phone_inline">Enter a valid phone number</string>
+    <string name="err_area_code_inline">Invalid area code (use 809/829/849)</string>
+
+    <!-- API Error Messages -->
+    <string name="api_error_unknown">Unknown API error</string>
+    <string name="api_error_empty_response">Empty server response</string>
+    <string name="api_error_no_internet">No internet connection</string>
+    <string name="api_error_timeout">Request timed out</string>
+    <string name="api_error_bad_request">Invalid request</string>
+    <string name="api_error_unauthorized">Unauthorized</string>
+    <string name="api_error_forbidden">Access forbidden</string>
+    <string name="api_error_not_found">Resource not found</string>
+    <string name="api_error_server_error">Internal server error</string>
+    <string name="sync_success">Contacts synced successfully</string>
+    <string name="sync_error">Failed to sync contacts</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="select_language">Select Language</string>
 </resources>

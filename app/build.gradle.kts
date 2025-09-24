@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
 }
 
 hilt {
@@ -90,8 +91,14 @@ dependencies {
     
     // Image loading
     implementation(libs.coil.compose)
-    
-    
+
+    // DataStore for preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Kotlin Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

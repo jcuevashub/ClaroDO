@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,11 +31,13 @@ import com.example.contactsapp.domain.model.Contact
 import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
 import com.example.contactsapp.common.StringConstants
+import com.example.contactsapp.common.StringResources
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactListScreen(
     onNavigateToCreateContact: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ContactListViewModel = hiltViewModel()
 ) {
@@ -49,6 +52,9 @@ fun ContactListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.title_contacts)) },
                 actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                    }
                     IconButton(onClick = onNavigateToCreateContact) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_new))
                     }
@@ -170,7 +176,7 @@ fun ContactListScreen(
     
     uiState.error?.let { error ->
         val msg = when (error) {
-            StringConstants.ERR_UNKNOWN -> stringResource(R.string.err_unknown)
+            StringResources.ERR_UNKNOWN -> stringResource(R.string.err_unknown)
             else -> error
         }
         LaunchedEffect(error) {

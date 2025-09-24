@@ -7,6 +7,7 @@ import com.example.contactsapp.domain.usecase.DeleteContactsUseCase
 import com.example.contactsapp.domain.usecase.GetContactsUseCase
 import com.example.contactsapp.domain.usecase.SearchContactsUseCase
 import com.example.contactsapp.common.StringConstants
+import com.example.contactsapp.common.StringResources
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,7 +17,8 @@ import javax.inject.Inject
 class ContactListViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val searchContactsUseCase: SearchContactsUseCase,
-    private val deleteContactsUseCase: DeleteContactsUseCase
+    private val deleteContactsUseCase: DeleteContactsUseCase,
+    private val stringResources: StringResources
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContactListUiState())
@@ -43,7 +45,7 @@ class ContactListViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = StringConstants.ERR_UNKNOWN) }
+                _uiState.update { it.copy(isLoading = false, error = StringResources.ERR_UNKNOWN) }
             }
         }
     }
@@ -76,7 +78,7 @@ class ContactListViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
+                _uiState.update { it.copy(error = StringResources.ERR_UNKNOWN) }
             }
         }
     }
@@ -128,7 +130,7 @@ class ContactListViewModel @Inject constructor(
                         clearSelection()
                     }
                     .onFailure { _ ->
-                        _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN, isLoading = false) }
+                        _uiState.update { it.copy(error = StringResources.ERR_UNKNOWN, isLoading = false) }
                     }
             }
         }

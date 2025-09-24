@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.stringResource
 import com.example.contactsapp.R
 import com.example.contactsapp.common.StringConstants
+import com.example.contactsapp.common.StringResources
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -188,11 +189,11 @@ fun CreateContactScreen(
                 
                 uiState.error?.let { error ->
                     val msg = when (error) {
-                        StringConstants.ERR_FIX_FIELDS -> stringResource(R.string.err_fix_fields)
-                        StringConstants.ERR_NAME -> stringResource(R.string.err_name_required)
-                        StringConstants.ERR_LASTNAME -> stringResource(R.string.err_lastname_required)
-                        StringConstants.ERR_PHONE -> stringResource(R.string.err_phone_invalid)
-                        StringConstants.ERR_UNKNOWN -> stringResource(R.string.err_save_contact)
+                        StringResources.ERR_FIX_FIELDS -> stringResource(R.string.err_fix_fields)
+                        StringResources.ERR_NAME -> stringResource(R.string.err_name_required)
+                        StringResources.ERR_LASTNAME -> stringResource(R.string.err_lastname_required)
+                        StringResources.ERR_PHONE -> stringResource(R.string.err_phone_invalid)
+                        StringResources.ERR_UNKNOWN -> stringResource(R.string.err_save_contact)
                         else -> error
                     }
                     LaunchedEffect(error) { snackbarHostState.showSnackbar(msg) }
