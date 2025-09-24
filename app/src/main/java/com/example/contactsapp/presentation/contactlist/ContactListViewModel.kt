@@ -6,17 +6,20 @@ import com.example.contactsapp.domain.model.Contact
 import com.example.contactsapp.domain.usecase.DeleteContactsUseCase
 import com.example.contactsapp.domain.usecase.GetContactsUseCase
 import com.example.contactsapp.domain.usecase.SearchContactsUseCase
+import com.example.contactsapp.domain.usecase.SyncContactsUseCase
 import com.example.contactsapp.common.StringConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
 class ContactListViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val searchContactsUseCase: SearchContactsUseCase,
-    private val deleteContactsUseCase: DeleteContactsUseCase
+    private val deleteContactsUseCase: DeleteContactsUseCase,
+    private val syncContactsUseCase: SyncContactsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContactListUiState())
@@ -31,19 +34,36 @@ class ContactListViewModel @Inject constructor(
     private fun loadContacts() {
         contactsJob?.cancel()
         contactsJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(showSkeletonLoader = true, error = null) }
+
+            delay(300)
+
             try {
                 getContactsUseCase().collect { contacts ->
-                    _uiState.update { 
+                    val groupedContacts = contacts.groupBy { contact ->
+                        contact.name.firstOrNull()?.uppercaseChar() ?: '?'
+                    }
+                    val availableLetters = groupedContacts.keys.toSet()
+
+                    _uiState.update {
                         it.copy(
-                            contacts = contacts, 
+                            contacts = contacts,
+                            groupedContacts = groupedContacts,
+                            availableLetters = availableLetters,
                             isLoading = false,
+                            showSkeletonLoader = false,
                             error = null
-                        ) 
+                        )
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = StringConstants.ERR_UNKNOWN) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        showSkeletonLoader = false,
+                        error = StringConstants.ERR_UNKNOWN
+                    )
+                }
             }
         }
     }
@@ -139,5 +159,41 @@ class ContactListViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true) }
+
+            try {
+                syncContactsUseCase()
+                    .onSuccess {
+                        loadContacts()
+                    }
+                    .onFailure {
+                        _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
+                    }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
+            }
+        }
+    }
+
+    fun scrollToLetter(letter: Char): Int {
+        val contacts = _uiState.value.contacts
+        return contacts.indexOfFirst { contact ->
+            contact.name.firstOrNull()?.uppercaseChar() == letter
+        }.takeIf { it >= 0 } ?: 0
+    }
+
+    fun deleteContactBySwipe(contact: Contact) {
+        viewModelScope.launch {
+            deleteContactsUseCase(listOf(contact))
+                .onFailure {
+                    _uiState.update { it.copy(error = StringConstants.ERR_UNKNOWN) }
+                }
+        }
     }
 }

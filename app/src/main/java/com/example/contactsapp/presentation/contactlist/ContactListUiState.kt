@@ -10,7 +10,12 @@ data class ContactListUiState(
     val selectedContacts: Set<Contact> = emptySet(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSelectionMode: Boolean = false
+    val isSelectionMode: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val groupedContacts: Map<Char, List<Contact>> = emptyMap(),
+    val availableLetters: Set<Char> = emptySet(),
+    val showSkeletonLoader: Boolean = false
 ) {
     val displayedContacts: List<Contact> get() = contacts
+    val selectedCount: Int get() = selectedContacts.size
 }

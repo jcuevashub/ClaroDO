@@ -41,6 +41,9 @@
     <!-- Selection -->
     <string name="not_selected">Not selected</string>
     <string name="selected">Selected</string>
+    <string name="selection_count">%1$d selected</string>
+    <string name="swipe_to_delete">Swipe to delete</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
 
     <!-- Phone -->
     <string name="country_code">+1</string>
